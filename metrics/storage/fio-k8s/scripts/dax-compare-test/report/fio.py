@@ -28,42 +28,40 @@ def compare_tests_group_by_fio_job(df, metric):
 #      'workload' , 'name[0]' , ... , 'name[n]'
 #
 def group_metrics_group_by_testname(df, metric):
-  #name of each tests from results
-  names = set()
-  # Rows of new data set
-  rows = []
-  # map:
-  # keys: name of fio job
-  # value: dict[k]:v where k: name of a test, v: value of test for  metric`
-  workload = {}
+    #name of each tests from results
+    names = set()
+    # Rows of new data set
+    rows = []
+    # map:
+    # keys: name of fio job
+    # value: dict[k]:v where k: name of a test, v: value of test for  metric`
+    workload = {}
 
-  for k, row in df.iterrows():
-    # name of a fio job
-    w = row['WORKLOAD']
-    # name of tests
-    tname = row['NAME']
-    names.add(tname)
-    # given a fio job name get dict of values
-    # if not previous values init empty dict
-    dict_values = workload.get(w, {})
-    # For a given metric, add it into as value of dict_values[testname]=val
-    #e.g
-    # dict_values["test-name"] = row["IOPS"]
-    dict_values[tname] = row[metric]
-    workload[w] = dict_values
+    for k, row in df.iterrows():
+      # name of a fio job
+      w = row['WORKLOAD']
+      # name of tests
+      tname = row['NAME']
+      names.add(tname)
+      # given a fio job name get dict of values
+      # if not previous values init empty dict
+      dict_values = workload.get(w, {})
+      # For a given metric, add it into as value of dict_values[testname]=val
+      #e.g
+      # dict_values["test-name"] = row["IOPS"]
+      dict_values[tname] = row[metric]
+      workload[w] = dict_values
 
-  names = list(names)
-  cols = ['WORKLOAD'] + list(names)
-  rdf = pd.DataFrame(workload,columns = cols)
+    names = list(names)
+    cols = ['WORKLOAD'] + list(names)
+    rdf = pd.DataFrame(workload,columns = cols)
 
-  for k in workload:
-    d = workload[k]
-
-    if not d[names[0]] == 0:
-      d["WORKLOAD"] = k;
-      rdf = rdf.append(d,ignore_index=True)
-  rdf = rdf.dropna()
-  return names, rdf
+    for k, d in workload.items():
+        if d[names[0]] != 0:
+            d["WORKLOAD"] = k;
+            rdf = rdf.append(d,ignore_index=True)
+    rdf = rdf.dropna()
+    return names, rdf
 
 def plot_df(df, names,sort_key=""):
   if sort_key != "":
